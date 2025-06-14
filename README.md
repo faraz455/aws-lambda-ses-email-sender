@@ -120,13 +120,18 @@ Included `build.sh` simplifies packaging:
 ```bash
 #!/bin/bash
 
+# Exit on error
 set -e
 
 echo "Installing dependencies..."
 npm install
 
-zip -r lambda.zip index.js src/ package.json package-lock.json .env README.md LICENSE
-echo "✅ lambda.zip ready to upload!"
+rm -rf lambda.zip
+
+echo "Creating deployment package..."
+zip -r lambda.zip src index.js .env package.json package-lock.json node_modules README.md LICENSE
+
+echo "✅ lambda.zip created successfully!"
 ```
 
 ---
@@ -152,12 +157,3 @@ echo "✅ lambda.zip ready to upload!"
 ## 📄 License
 
 MIT License. See the [LICENSE](./LICENSE) file for details.
-
----
-
-Let me know if you'd like to add:
-
-- ✅ HTML + plain-text MIME support
-- ✅ Multi-recipient or BCC support
-- ✅ CDK/SAM deployment templates
-- ✅ API Gateway integration example
