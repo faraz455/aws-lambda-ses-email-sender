@@ -1,16 +1,17 @@
 # 📧 AWS Lambda SES Email Sender
 
-A lightweight and production-ready AWS Lambda function for sending emails using **Amazon SES (Simple Email Service)**. Designed for seamless deployment, this function accepts dynamic input and dispatches emails using raw MIME formatting.
+A production-ready AWS Lambda function to send emails using **Amazon SES (Simple Email Service)**. This function takes dynamic input such as recipient address, subject, and content — and sends MIME-formatted emails using `aws-sdk` and `mimetext`.
 
 ---
 
 ## ✅ Features
 
-- 📤 **Send emails** via Amazon SES with raw MIME formatting
-- 🛠 **Easily deployable** — just zip and upload to Lambda
-- 🔐 **Secure configuration** using environment variables
-- ⚡️ **Fast cold starts** with minimal dependencies
-- 📦 Includes `package-lock.json` for reproducible builds
+- 📤 Send rich MIME-formatted emails via AWS SES
+- ⚙️ Easily configurable with environment variables
+- 🚀 Deployable via ZIP upload to AWS Lambda
+- 🔐 Secure: does not expose credentials
+- 🧪 Includes test instructions and deployment script
+- 📦 Reproducible builds via `package-lock.json`
 
 ---
 
@@ -18,97 +19,140 @@ A lightweight and production-ready AWS Lambda function for sending emails using 
 
 ```
 .
-├── handler.js           # Lambda function logic
-├── package.json         # Project metadata and dependencies
-├── package-lock.json    # Dependency lock file for consistent builds
-├── .env                 # Environment variables (excluded from production)
+├── handler.js           # Main Lambda handler
+├── package.json         # Project dependencies and metadata
+├── package-lock.json    # Locked dependencies for stable builds
+├── .env.example         # Example .env file (for local testing)
+├── build.sh             # Script to package project into lambda.zip
+├── README.md            # Project documentation
+└── LICENSE              # MIT License
 ```
 
 ---
 
 ## ⚙️ Setup & Deployment
 
-### 1. Install Dependencies
+### 🔧 Prerequisites
 
-If working locally or preparing for deployment:
+Before you begin, ensure you have the following installed:
+
+- [Node.js](https://nodejs.org/) (v18.x recommended)
+- [npm](https://www.npmjs.com/)
+- `zip` utility (for packaging the Lambda)
+- AWS account with verified SES sender
+
+---
+
+### 1. Clone and Install Dependencies
 
 ```bash
+git clone https://github.com/faraz455/aws-lambda-ses-email-sender.git
+cd aws-lambda-ses-email-sender
 npm install
 ```
 
 ---
 
-### 2. Create a `.env` File
+### 2. Configure Environment
 
-Define your SES configuration in a `.env` file:
+Create a `.env` file in the project root with your SES and AWS credentials:
 
 ```env
-FROM_EMAIL=youremail@example.com         # Must be verified in Amazon SES
-REGION=us-east-1                         # Region where SES is configured
+FROM_EMAIL=youremail@example.com         # Must be verified in SES
+REGION=us-east-1                         # AWS region where SES is setup
 ACCESS_KEY_ID=YOUR_AWS_ACCESS_KEY_ID
 SECRET_ACCESS_KEY=YOUR_AWS_SECRET_ACCESS_KEY
 ```
 
-> 🔐 Do **not** commit this file. For production, use **Lambda environment variables** or **AWS Secrets Manager**.
+> 🛡️ **Note**: Never commit `.env` to version control. For production, use Lambda environment variables or AWS Secrets Manager.
 
 ---
 
-### 3. Package the Function
+### 3. Package the Lambda Function
 
-Zip the function files from the **root** (not the folder itself):
+You can run the provided `build.sh` to install dependencies and create a ZIP file:
 
 ```bash
-zip -r lambda-email-sender.zip .
+chmod +x build.sh
+./build.sh
 ```
+
+> This will generate `lambda.zip` which can be uploaded to AWS Lambda.
 
 ---
 
-### 4. Deploy to AWS Lambda
-
-In the AWS Lambda Console:
+### 4. Deploy on AWS Lambda
 
 - **Runtime**: `Node.js 18.x`
 - **Handler**: `handler.handler`
-- **Upload**: Use the zipped file
+- **Upload**: Select `lambda.zip`
 - **Environment Variables**: Add values from your `.env`
-- **Permissions**: Ensure Lambda has `ses:SendRawEmail` permission
+- **IAM Role**: Must include `ses:SendRawEmail` permission
 
 ---
 
 ## 🧪 Testing the Function
 
-You can test it directly in the AWS Lambda Console with this input:
+Sample test payload for AWS Lambda Console:
 
 ```json
 {
   "toEmail": "recipient@example.com",
   "bccEmail": "bcc@example.com",
-  "emailSubject": "Test Email via AWS Lambda",
-  "htmlContent": "Hello from your Lambda function!"
+  "emailSubject": "Lambda Email Test",
+  "htmlContent": "This is a test email sent via AWS Lambda!"
 }
 ```
 
-Expected result: The recipient receives an email with your specified content and subject.
+You should receive an email shortly if everything is configured correctly.
+
+---
+
+## 🛠️ Build Script
+
+A helper script is included to streamline deployment:
+
+**`build.sh`**
+
+```bash
+#!/bin/bash
+
+set -e
+
+echo "Installing dependencies..."
+npm install
+
+echo "Packaging lambda.zip..."
+zip -r lambda.zip handler.js package.json package-lock.json node_modules .env.example README.md LICENSE
+
+echo "✅ lambda.zip is ready for deployment!"
+```
+
+> Make it executable:
+
+```bash
+chmod +x build.sh
+```
 
 ---
 
 ## 📚 Dependencies
 
-| Package    | Description                    |
-| ---------- | ------------------------------ |
-| `aws-sdk`  | AWS SDK for JavaScript         |
-| `mimetext` | MIME-compliant message builder |
+| Package    | Description                         |
+| ---------- | ----------------------------------- |
+| `aws-sdk`  | AWS SDK for programmatic SES access |
+| `mimetext` | Generates MIME-compliant email body |
 
 ---
 
-## 🔐 Security Notes
+## 🔐 Security Tips
 
-- Always store sensitive credentials using environment variables or **AWS Secrets Manager**.
-- Restrict IAM roles to the **least privilege** required.
-- Verify `FROM_EMAIL` in SES for the region you are using.
+- Use **Lambda environment variables** or **AWS Secrets Manager** to manage secrets.
+- Ensure your IAM role follows **least privilege** principle.
+- Only use **verified emails** in SES for sending.
 
 ---
 
 ## 📄 License
 
-This project is licensed under the **MIT License**. See the [LICENSE](./LICENSE) file for details.
+This project is licensed under the **MIT License**. See the [LICENSE](./LICENSE) file for more details.
