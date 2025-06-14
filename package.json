@@ -1,17 +1,11 @@
 {
   "name": "aws-lambda-ses-email-sender",
   "version": "1.0.0",
+  "main": "index.js",
   "type": "module",
-  "main": "handler.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
   "dependencies": {
-    "aws-sdk": "^2.1692.0",
-    "mimetext": "^3.0.27"
-  },
-  "description": ""
+    "aws-sdk": "^2.1360.0",
+    "dotenv": "^16.3.1",
+    "validator": "^13.9.0"
+  }
 }
