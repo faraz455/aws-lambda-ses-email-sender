@@ -1,17 +1,16 @@
 # 📧 AWS Lambda SES Email Sender
 
-A production-ready AWS Lambda function to send emails using **Amazon SES (Simple Email Service)**. This function takes dynamic input such as recipient address, subject, and content — and sends MIME-formatted emails using `aws-sdk` and `mimetext`.
+A **production-grade AWS Lambda function** to send emails via **Amazon SES (Simple Email Service)**. Designed for clarity, security, and simplicity, this Lambda function receives email details (recipient, subject, message) as input and sends MIME-compliant emails using `aws-sdk`.
 
 ---
 
 ## ✅ Features
 
-- 📤 Send rich MIME-formatted emails via AWS SES
-- ⚙️ Easily configurable with environment variables
-- 🚀 Deployable via ZIP upload to AWS Lambda
-- 🔐 Secure: does not expose credentials
-- 🧪 Includes test instructions and deployment script
-- 📦 Reproducible builds via `package-lock.json`
+- 📤 Send transactional or custom MIME-formatted emails via AWS SES
+- 🔐 Uses secure environment variables (no hardcoded credentials)
+- 🧱 Modular architecture: clean separation of concerns
+- 🚀 Easily deployable via ZIP upload to AWS Lambda
+- 🧪 Includes a test payload and build script for quick setup
 
 ---
 
@@ -19,13 +18,20 @@ A production-ready AWS Lambda function to send emails using **Amazon SES (Simple
 
 ```
 .
-├── handler.js           # Main Lambda handler
-├── package.json         # Project dependencies and metadata
-├── package-lock.json    # Locked dependencies for stable builds
-├── .env.example         # Example .env file (for local testing)
-├── build.sh             # Script to package project into lambda.zip
-├── README.md            # Project documentation
-└── LICENSE              # MIT License
+├── index.js              # Lambda entry point (exports handler)
+├── src/
+│   ├── handlers/
+│   │   └── emailHandler.js    # Lambda logic
+│   ├── services/
+│   │   └── sesService.js      # AWS SES email service
+│   └── utils/
+│       └── validator.js       # Input validation
+├── .env.example          # Example environment config
+├── build.sh              # ZIP packaging script
+├── package.json          # Project metadata and dependencies
+├── package-lock.json     # Locked versions for reproducible builds
+├── README.md             # This file
+└── LICENSE               # MIT License
 ```
 
 ---
@@ -34,16 +40,16 @@ A production-ready AWS Lambda function to send emails using **Amazon SES (Simple
 
 ### 🔧 Prerequisites
 
-Before you begin, ensure you have the following installed:
+Ensure you have:
 
-- [Node.js](https://nodejs.org/) (v18.x recommended)
-- [npm](https://www.npmjs.com/)
-- `zip` utility (for packaging the Lambda)
-- AWS account with verified SES sender
+- ✅ [Node.js](https://nodejs.org/) (18.x or higher)
+- ✅ [npm](https://www.npmjs.com/)
+- ✅ AWS account with SES and verified sender email
+- ✅ IAM Role with permission: `ses:SendEmail`
 
 ---
 
-### 1. Clone and Install Dependencies
+### 1. Clone & Install Dependencies
 
 ```bash
 git clone https://github.com/faraz455/aws-lambda-ses-email-sender.git
@@ -53,66 +59,63 @@ npm install
 
 ---
 
-### 2. Configure Environment
+### 2. Environment Configuration
 
-Create a `.env` file in the project root with your SES and AWS credentials:
+Create a `.env` file (or set Lambda environment variables in AWS Console):
 
-```env
-FROM_EMAIL=youremail@example.com         # Must be verified in SES
-REGION=us-east-1                         # AWS region where SES is setup
-ACCESS_KEY_ID=YOUR_AWS_ACCESS_KEY_ID
-SECRET_ACCESS_KEY=YOUR_AWS_SECRET_ACCESS_KEY
+```ini
+FROM_EMAIL=youremail@example.com
+REGION=us-east-1
+ACCESS_KEY_ID=ACESS_KEY_ID
+SECRET_ACCESS_KEY=SECRET_ACCESS_KEY
 ```
 
-> 🛡️ **Note**: Never commit `.env` to version control. For production, use Lambda environment variables or AWS Secrets Manager.
+> ℹ️ `FROM_EMAIL` must be verified in SES.
 
 ---
 
-### 3. Package the Lambda Function
+### 3. Package for Deployment
 
-You can run the provided `build.sh` to install dependencies and create a ZIP file:
+Run the provided build script:
 
 ```bash
 chmod +x build.sh
 ./build.sh
 ```
 
-> This will generate `lambda.zip` which can be uploaded to AWS Lambda.
+This creates `lambda.zip`, ready for Lambda upload.
 
 ---
 
 ### 4. Deploy on AWS Lambda
 
 - **Runtime**: `Node.js 18.x`
-- **Handler**: `handler.handler`
-- **Upload**: Select `lambda.zip`
-- **Environment Variables**: Add values from your `.env`
-- **IAM Role**: Must include `ses:SendRawEmail` permission
+- **Handler**: `index.handler`
+- **Upload**: `lambda.zip`
+- **Environment Variables**: Set `SOURCE_EMAIL`, `REGION`, `ACCESS_KEY_ID`, `SECRET_ACCESS_KEY`
+- **IAM Role**: Must include `ses:SendEmail` permission
 
 ---
 
-## 🧪 Testing the Function
+## 🧪 Testing the Lambda Function
 
-Sample test payload for AWS Lambda Console:
+Send a test event with this payload in the Lambda console:
 
 ```json
 {
-  "toEmail": "recipient@example.com",
-  "bccEmail": "bcc@example.com",
-  "emailSubject": "Lambda Email Test",
-  "htmlContent": "This is a test email sent via AWS Lambda!"
+  "to": "recipient@example.com",
+  "subject": "Lambda Email Test",
+  "message": "This is a test email sent from AWS Lambda!"
 }
 ```
 
-You should receive an email shortly if everything is configured correctly.
+> You should receive the email shortly if SES is configured properly and the email is verified.
 
 ---
 
 ## 🛠️ Build Script
 
-A helper script is included to streamline deployment:
-
-**`build.sh`**
+Included `build.sh` simplifies packaging:
 
 ```bash
 #!/bin/bash
@@ -122,37 +125,39 @@ set -e
 echo "Installing dependencies..."
 npm install
 
-echo "Packaging lambda.zip..."
-zip -r lambda.zip handler.js package.json package-lock.json node_modules .env.example README.md LICENSE
-
-echo "✅ lambda.zip is ready for deployment!"
-```
-
-> Make it executable:
-
-```bash
-chmod +x build.sh
+zip -r lambda.zip index.js src/ package.json package-lock.json .env README.md LICENSE
+echo "✅ lambda.zip ready to upload!"
 ```
 
 ---
 
 ## 📚 Dependencies
 
-| Package    | Description                         |
-| ---------- | ----------------------------------- |
-| `aws-sdk`  | AWS SDK for programmatic SES access |
-| `mimetext` | Generates MIME-compliant email body |
+| Package     | Purpose                           |
+| ----------- | --------------------------------- |
+| `aws-sdk`   | Interface with AWS SES            |
+| `validator` | Email input validation            |
+| `dotenv`    | Loads `.env` during local testing |
 
 ---
 
-## 🔐 Security Tips
+## 🔐 Security Best Practices
 
-- Use **Lambda environment variables** or **AWS Secrets Manager** to manage secrets.
-- Ensure your IAM role follows **least privilege** principle.
-- Only use **verified emails** in SES for sending.
+- Never hardcode AWS credentials — use IAM roles or Secrets Manager
+- Only send from **verified emails/domains** in SES
+- Apply least-privilege policy to IAM roles
 
 ---
 
 ## 📄 License
 
-This project is licensed under the **MIT License**. See the [LICENSE](./LICENSE) file for more details.
+MIT License. See the [LICENSE](./LICENSE) file for details.
+
+---
+
+Let me know if you'd like to add:
+
+- ✅ HTML + plain-text MIME support
+- ✅ Multi-recipient or BCC support
+- ✅ CDK/SAM deployment templates
+- ✅ API Gateway integration example
