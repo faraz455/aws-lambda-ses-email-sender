@@ -3,8 +3,9 @@ import { validateEmailPayload } from "../utils/validator.js";
 
 export const handler = async (event) => {
   try {
+    const body = JSON.parse(event.body) || {};
     // Validate input
-    const validationError = validateEmailPayload(event);
+    const validationError = validateEmailPayload(body);
     if (validationError) {
       return {
         statusCode: 400,
@@ -12,7 +13,7 @@ export const handler = async (event) => {
       };
     }
 
-    const { to, subject, message } = event;
+    const { to, subject, message } = body;
 
     await sendEmail({ to, subject, message });
 

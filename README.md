@@ -1,12 +1,12 @@
 # 📧 AWS Lambda SES Email Sender
 
-A **production-grade AWS Lambda function** to send emails via **Amazon SES (Simple Email Service)**. Designed for clarity, security, and simplicity, this Lambda function receives email details (recipient, subject, message) as input and sends MIME-compliant emails using `aws-sdk`.
+A **production-grade AWS Lambda function** to send emails via **Amazon SES (Simple Email Service)**. Designed for clarity, security, and simplicity, this Lambda function receives email details (recipient, subject, message) as input and sends emails using `aws-sdk`.
 
 ---
 
 ## ✅ Features
 
-- 📤 Send transactional or custom MIME-formatted emails via AWS SES
+- 📤 Send transactional formatted emails via AWS SES
 - 🔐 Uses secure environment variables (no hardcoded credentials)
 - 🧱 Modular architecture: clean separation of concerns
 - 🚀 Easily deployable via ZIP upload to AWS Lambda
