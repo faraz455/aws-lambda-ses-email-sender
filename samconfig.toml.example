@@ -1,0 +1,9 @@
+version = 0.1
+[default.deploy.parameters]
+stack_name = "aws-ses-lambda"
+resolve_s3 = false
+s3_bucket = "your-sam-deployments-bucket"
+s3_prefix = "aws-ses-lambda"
+region = "us-east-1"
+capabilities = "CAPABILITY_IAM"
+image_repositories = [] 
