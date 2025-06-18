@@ -6,7 +6,6 @@ node_modules/
 
 # Environment variables
 .env
-.env.*
 
 # IDE files
 .vscode/
