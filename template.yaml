@@ -6,6 +6,7 @@ Resources:
   EmailSenderLambdaFunction:
     Type: AWS::Serverless::Function
     Properties:
+      FunctionName: my-custom-lambda-email-ses
       Handler: index.handler
       Runtime: nodejs18.x
       MemorySize: 128
