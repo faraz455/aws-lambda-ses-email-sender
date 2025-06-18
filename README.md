@@ -62,20 +62,9 @@ npm install
 
 ---
 
-### 2. Environment Configuration
+### 2. Deployment Options
 
-Create a `.env` file in the project root (required for both deployment methods):
-
-```ini
-SOURCE_EMAIL=youremail@example.com
-REGION=us-east-1
-ACCESS_KEY_ID=ACCESS_KEY_ID
-SECRET_ACCESS_KEY=SECRET_ACCESS_KEY
-```
-
-> ℹ️ `SOURCE_EMAIL` must be verified in SES.
-
-#### A. For SAM Deployment
+#### A. Using SAM CLI Deployment (Recommended)
 
 1. Create an S3 bucket for SAM deployments:
 
@@ -102,7 +91,19 @@ region = "your-region"
 capabilities = "CAPABILITY_IAM"
 ```
 
-#### B. For Manual Deployment
+4. Deploy the application:
+
+```bash
+sam deploy
+```
+
+5. View the deployed API endpoint:
+
+```bash
+aws cloudformation describe-stacks --stack-name aws-ses-lambda --query 'Stacks[0].Outputs'
+```
+
+#### B. Manual ZIP Deployment
 
 1. Create the deployment package:
 
@@ -113,38 +114,42 @@ chmod +x build.sh
 
 This creates `lambda.zip`, ready for Lambda upload.
 
----
-
-### 3. Deployment Options
-
-#### A. Using SAM CLI (Recommended)
-
-1. Deploy the application:
-
-```bash
-sam deploy
-```
-
-2. View the deployed API endpoint:
-
-```bash
-aws cloudformation describe-stacks --stack-name aws-ses-lambda --query 'Stacks[0].Outputs'
-```
-
-#### B. Manual ZIP Deployment
-
-Upload `lambda.zip` to AWS Lambda:
+2. Upload `lambda.zip` to AWS Lambda:
 
 - Go to AWS Lambda Console
 - Select your function
 - Click "Upload from" → ".zip file"
 - Upload the generated `lambda.zip`
-- Set the following configuration:
-  - Runtime: `Node.js 18.x`
-  - Handler: `index.handler`
-  - Environment Variables: Set the same variables as in your `.env` file
 
 ---
+
+### 3. Environment Configuration
+
+The Lambda function requires the following environment variables to be set in the AWS Lambda console:
+
+```ini
+SOURCE_EMAIL=youremail@example.com
+REGION=us-east-1
+ACCESS_KEY_ID=ACCESS_KEY_ID
+SECRET_ACCESS_KEY=SECRET_ACCESS_KEY
+```
+
+> ⚠️ **Important**:
+>
+> - The `.env` file is only used for local development
+> - After deploying the Lambda function, you must manually set these environment variables in the AWS Lambda console
+> - See `.env.example` for the required variable
+> - `SOURCE_EMAIL` must be verified in SES
+
+To set environment variables in Lambda:
+
+1. Go to AWS Lambda Console
+2. Select your function
+3. Scroll down to "Configuration" tab
+4. Click on "Environment variables"
+5. Click "Edit"
+6. Add each variable from `.env.example`
+7. Click "Save"
 
 ### 4. AWS Console Configuration
 
