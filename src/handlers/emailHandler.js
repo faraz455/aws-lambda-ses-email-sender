@@ -3,7 +3,30 @@ import { validateEmailPayload } from "../utils/validator.js";
 
 export const handler = async (event) => {
   try {
-    const body = JSON.parse(event.body) || {};
+    // Check if event.body exists
+    if (!event.body) {
+      return {
+        statusCode: 400,
+        body: JSON.stringify({
+          error:
+            "Request body is missing. Please provide a JSON body with 'to', 'subject', and 'message' fields.",
+        }),
+      };
+    }
+
+    let body;
+    try {
+      body = JSON.parse(event.body);
+    } catch (parseError) {
+      return {
+        statusCode: 400,
+        body: JSON.stringify({
+          error:
+            "Invalid JSON in request body. Please ensure the request body is valid JSON.",
+        }),
+      };
+    }
+
     // Validate input
     const validationError = validateEmailPayload(body);
     if (validationError) {
@@ -26,7 +49,10 @@ export const handler = async (event) => {
 
     return {
       statusCode: 500,
-      body: JSON.stringify({ error: "Internal Server Error" }),
+      body: JSON.stringify({
+        error: "Internal Server Error",
+        message: error.message,
+      }),
     };
   }
 };
