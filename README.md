@@ -9,7 +9,7 @@ A **production-grade AWS Lambda function** to send emails via **Amazon SES (Simp
 - 📤 Send transactional formatted emails via AWS SES
 - 🔐 Uses secure environment variables (no hardcoded credentials)
 - 🧱 Modular architecture: clean separation of concerns
-- 🚀 Easily deployable via ZIP upload to AWS Lambda
+- 🚀 Multiple deployment options: SAM CLI or manual ZIP upload
 - 🧪 Includes a test payload and build script for quick setup
 
 ---
@@ -26,12 +26,14 @@ A **production-grade AWS Lambda function** to send emails via **Amazon SES (Simp
 │   │   └── sesService.js      # AWS SES email service
 │   └── utils/
 │       └── validator.js       # Input validation
-├── .env.example          # Example environment config
-├── build.sh              # ZIP packaging script
-├── package.json          # Project metadata and dependencies
-├── package-lock.json     # Locked versions for reproducible builds
-├── README.md             # This file
-└── LICENSE               # MIT License
+├── template.yaml             # SAM/CloudFormation template
+├── samconfig.toml.example    # Example SAM deployment config
+├── .env.example              # Example environment config
+├── build.sh                  # ZIP packaging script
+├── package.json              # Project metadata and dependencies
+├── package-lock.json         # Locked versions for reproducible builds
+├── README.md                 # This file
+└── LICENSE                   # MIT License
 ```
 
 ---
@@ -44,6 +46,7 @@ Ensure you have:
 
 - ✅ [Node.js](https://nodejs.org/) (18.x or higher)
 - ✅ [npm](https://www.npmjs.com/)
+- ✅ [AWS SAM CLI](https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/serverless-sam-cli-install.html)
 - ✅ AWS account with SES and verified sender email
 - ✅ IAM Role with permission: `ses:SendEmail`
 
@@ -61,22 +64,47 @@ npm install
 
 ### 2. Environment Configuration
 
-Create a `.env` file (or set Lambda environment variables in AWS Console):
+Create a `.env` file in the project root (required for both deployment methods):
 
 ```ini
-FROM_EMAIL=youremail@example.com
+SOURCE_EMAIL=youremail@example.com
 REGION=us-east-1
-ACCESS_KEY_ID=ACESS_KEY_ID
+ACCESS_KEY_ID=ACCESS_KEY_ID
 SECRET_ACCESS_KEY=SECRET_ACCESS_KEY
 ```
 
-> ℹ️ `FROM_EMAIL` must be verified in SES.
+> ℹ️ `SOURCE_EMAIL` must be verified in SES.
 
----
+#### A. For SAM Deployment
 
-### 3. Package for Deployment
+1. Create an S3 bucket for SAM deployments:
 
-Run the provided build script:
+```bash
+aws s3 mb s3://your-sam-deployments-bucket --region your-region
+```
+
+2. Create `samconfig.toml` from the example:
+
+```bash
+cp samconfig.toml.example samconfig.toml
+```
+
+3. Update `samconfig.toml` with your values:
+
+```toml
+version = 0.1
+[default.deploy.parameters]
+stack_name = "aws-ses-lambda"
+resolve_s3 = false
+s3_bucket = "your-sam-deployments-bucket"
+s3_prefix = "aws-ses-lambda"
+region = "your-region"
+capabilities = "CAPABILITY_IAM"
+```
+
+#### B. For Manual Deployment
+
+1. Create the deployment package:
 
 ```bash
 chmod +x build.sh
@@ -87,11 +115,41 @@ This creates `lambda.zip`, ready for Lambda upload.
 
 ---
 
-### 4. Deploy on AWS Lambda
+### 3. Deployment Options
+
+#### A. Using SAM CLI (Recommended)
+
+1. Deploy the application:
+
+```bash
+sam deploy
+```
+
+2. View the deployed API endpoint:
+
+```bash
+aws cloudformation describe-stacks --stack-name aws-ses-lambda --query 'Stacks[0].Outputs'
+```
+
+#### B. Manual ZIP Deployment
+
+Upload `lambda.zip` to AWS Lambda:
+
+- Go to AWS Lambda Console
+- Select your function
+- Click "Upload from" → ".zip file"
+- Upload the generated `lambda.zip`
+- Set the following configuration:
+  - Runtime: `Node.js 18.x`
+  - Handler: `index.handler`
+  - Environment Variables: Set the same variables as in your `.env` file
+
+---
+
+### 4. AWS Console Configuration
 
 - **Runtime**: `Node.js 18.x`
 - **Handler**: `index.handler`
-- **Upload**: `lambda.zip`
 - **Environment Variables**: Set `SOURCE_EMAIL`, `REGION`, `ACCESS_KEY_ID`, `SECRET_ACCESS_KEY`
 - **IAM Role**: Must include `ses:SendEmail` permission
 
@@ -113,29 +171,6 @@ Send a test event with this payload in the Lambda console:
 
 ---
 
-## 🛠️ Build Script
-
-Included `build.sh` simplifies packaging:
-
-```bash
-#!/bin/bash
-
-# Exit on error
-set -e
-
-echo "Installing dependencies..."
-npm install
-
-rm -rf lambda.zip
-
-echo "Creating deployment package..."
-zip -r lambda.zip src index.js .env package.json package-lock.json node_modules README.md LICENSE
-
-echo "✅ lambda.zip created successfully!"
-```
-
----
-
 ## 📚 Dependencies
 
 | Package     | Purpose                           |
@@ -151,6 +186,8 @@ echo "✅ lambda.zip created successfully!"
 - Never hardcode AWS credentials — use IAM roles or Secrets Manager
 - Only send from **verified emails/domains** in SES
 - Apply least-privilege policy to IAM roles
+- Keep `samconfig.toml` out of version control (it's in `.gitignore`)
+- Use environment variables for sensitive configuration
 
 ---
 
