@@ -162,7 +162,19 @@ To set environment variables in Lambda:
 
 ## 🧪 Testing the Lambda Function
 
-Send a test event with this payload in the Lambda console:
+### A. Testing via Lambda Console
+
+When testing directly in the Lambda console, you need to wrap your payload in a `body` field as a JSON string:
+
+```json
+{
+  "body": "{\n  \"to\": \"recipient@example.com\",\n  \"subject\": \"Lambda Email Test\",\n  \"message\": \"This is a test email sent from AWS Lambda!\"\n}"
+}
+```
+
+### B. Testing via API Endpoint
+
+When testing via the API endpoint (e.g., using Postman, curl, or any HTTP client), send the payload directly:
 
 ```json
 {
@@ -172,7 +184,22 @@ Send a test event with this payload in the Lambda console:
 }
 ```
 
-> You should receive the email shortly if SES is configured properly and the email is verified.
+> ⚠️ **Important**:
+>
+> - Make sure to set `Content-Type: application/json` header when testing via API endpoint
+> - The email address in `to` field must be valid
+> - `SOURCE_EMAIL` must be verified in SES
+> - You should receive the email shortly if SES is configured properly
+
+#### API Gateway Authorization
+
+If you've configured API Gateway with IAM authorization:
+
+1. In Postman, go to the "Authorization" tab
+2. Select "AWS Signature" as the authorization type
+3. Enter your AWS credentials:
+   - AccessKey: Your AWS Access Key ID
+   - SecretKey: Your AWS Secret Access Key
 
 ---
 
